@@ -93,4 +93,47 @@ public class MascotaApp {
         int eleccion = sc.nextInt();
         sc.nextLine();  // limpiar buffer
 
-        System.out.print("Ingresa
+        System.out.print("Ingresa el nombre de tu mascota: ");
+        String nombre = sc.nextLine();
+
+        switch (eleccion) {
+            case 1:
+                mascota = new PerroVirtual(nombre);
+                break;
+            case 2:
+                mascota = new GatoVirtual(nombre);
+                break;
+            case 3:
+                mascota = new HamsterVirtual(nombre);
+                break;
+            default:
+                System.out.println("Opción inválida.");
+                return;
+        }
+
+        int opcion;
+        do {
+            System.out.println("\n¿Qué deseas hacer con " + nombre + "?\n1. Comer\n2. Jugar\n3. Ver estado\n4. Salir");
+            opcion = sc.nextInt();
+
+            switch (opcion) {
+                case 1:
+                    mascota.comer();
+                    break;
+                case 2:
+                    mascota.jugar();
+                    break;
+                case 3:
+                    mascota.mostrarEstado();
+                    break;
+                case 4:
+                    System.out.println("¡Adiós!");
+                    break;
+                default:
+                    System.out.println("Opción inválida.");
+            }
+        } while (opcion != 4);
+
+        sc.close();
+    }
+}
