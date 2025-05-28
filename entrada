@@ -1,0 +1,92 @@
+import java.util.ArrayList;
+import java.util.List;
+
+// Clase abstracta Entrada
+abstract class Entrada {
+    protected String evento;
+    protected double precioBase;
+
+    public Entrada(String evento, double precioBase) {
+        this.evento = evento;
+        this.precioBase = precioBase;
+    }
+
+    public abstract double calcularPrecioFinal();
+
+    public String getEvento() {
+        return evento;
+    }
+
+    public double getPrecioBase() {
+        return precioBase;
+    }
+}
+
+// Subclase EntradaEstandar
+class EntradaEstandar extends Entrada {
+
+    public EntradaEstandar(String evento, double precioBase) {
+        super(evento, precioBase);
+    }
+
+    @Override
+    public double calcularPrecioFinal() {
+        return precioBase;
+    }
+}
+
+// Subclase EntradaVIP
+class EntradaVIP extends Entrada {
+    private double recargoVIP;
+
+    public EntradaVIP(String evento, double precioBase, double recargoVIP) {
+        super(evento, precioBase);
+        this.recargoVIP = recargoVIP;
+    }
+
+    @Override
+    public double calcularPrecioFinal() {
+        return precioBase + (precioBase * recargoVIP);
+    }
+}
+
+// Subclase EntradaConDescuento
+class EntradaConDescuento extends Entrada {
+    private double porcentajeDescuento;
+
+    public EntradaConDescuento(String evento, double precioBase, double porcentajeDescuento) {
+        super(evento, precioBase);
+        this.porcentajeDescuento = porcentajeDescuento;
+    }
+
+    @Override
+    public double calcularPrecioFinal() {
+        return precioBase - (precioBase * porcentajeDescuento);
+    }
+}
+
+// Clase principal para probar el sistema
+public class SistemaEntradas {
+    public static void main(String[] args) {
+        List<Entrada> entradas = new ArrayList<>();
+
+        // Crear entradas
+        entradas.add(new EntradaEstandar("Concierto Rock", 50.0));
+        entradas.add(new EntradaEstandar("Teatro Clásico", 35.0));
+
+        entradas.add(new EntradaVIP("Festival Música", 100.0, 0.30));
+        entradas.add(new EntradaVIP("Gala de Cine", 120.0, 0.50));
+
+        entradas.add(new EntradaConDescuento("Obra Infantil", 40.0, 0.25));
+        entradas.add(new EntradaConDescuento("Cine Estudiantil", 20.0, 0.10));
+
+        // Recorrer la lista e imprimir los detalles
+        for (Entrada entrada : entradas) {
+            System.out.println("Tipo de entrada: " + entrada.getClass().getSimpleName());
+            System.out.println("Evento: " + entrada.getEvento());
+            System.out.println("Precio base: $" + entrada.getPrecioBase());
+            System.out.println("Precio final: $" + entrada.calcularPrecioFinal());
+            System.out.println("---------------------------------------");
+        }
+    }
+}
