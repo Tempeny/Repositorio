@@ -1,0 +1,207 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+// Clase Ingrediente
+class Ingrediente {
+    private String nombre;
+    private double cantidad;
+    private String unidad;
+
+    public Ingrediente(String nombre, double cantidad, String unidad) {
+        this.nombre = nombre;
+        this.cantidad = cantidad;
+        this.unidad = unidad;
+    }
+
+    @Override
+    public String toString() {
+        return cantidad + " " + unidad + " de " + nombre;
+    }
+}
+
+// Clase abstracta Receta
+abstract class Receta {
+    protected String nombre;
+    protected List<Ingrediente> ingredientes;
+    protected List<String> pasos;
+
+    public Receta(String nombre) {
+        this.nombre = nombre;
+        this.ingredientes = new ArrayList<>();
+        this.pasos = new ArrayList<>();
+    }
+
+    public void agregarIngrediente(Ingrediente ing) {
+        ingredientes.add(ing);
+    }
+
+    public void agregarPaso(String paso) {
+        pasos.add(paso);
+    }
+
+    public abstract String descripcionGeneral();
+
+    public void mostrarDetalle() {
+        System.out.println("\nReceta: " + nombre);
+        System.out.println("Tipo: " + getTipo());
+        System.out.println("Ingredientes:");
+        for (Ingrediente ing : ingredientes) {
+            System.out.println("- " + ing);
+        }
+        System.out.println("Pasos de preparación:");
+        for (int i = 0; i < pasos.size(); i++) {
+            System.out.println((i + 1) + ". " + pasos.get(i));
+        }
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public int getNumeroIngredientes() {
+        return ingredientes.size();
+    }
+
+    public abstract String getTipo();
+}
+
+// Receta dulce
+class RecetaDulce extends Receta {
+    public RecetaDulce(String nombre) {
+        super(nombre);
+    }
+
+    @Override
+    public String descripcionGeneral() {
+        return "Postre dulce: " + nombre + " (" + ingredientes.size() + " ingredientes)";
+    }
+
+    @Override
+    public String getTipo() {
+        return "Dulce";
+    }
+}
+
+// Receta salada
+class RecetaSalada extends Receta {
+    public RecetaSalada(String nombre) {
+        super(nombre);
+    }
+
+    @Override
+    public String descripcionGeneral() {
+        return "Plato salado: " + nombre + " (" + ingredientes.size() + " ingredientes)";
+    }
+
+    @Override
+    public String getTipo() {
+        return "Salada";
+    }
+}
+
+// Recetario que contiene múltiples recetas
+class Recetario {
+    private List<Receta> recetas;
+
+    public Recetario() {
+        recetas = new ArrayList<>();
+    }
+
+    public void agregarReceta(Receta receta) {
+        recetas.add(receta);
+    }
+
+    public void mostrarResumen() {
+        if (recetas.isEmpty()) {
+            System.out.println("No hay recetas disponibles.");
+            return;
+        }
+        System.out.println("\n--- RESUMEN DE RECETAS ---");
+        for (int i = 0; i < recetas.size(); i++) {
+            Receta r = recetas.get(i);
+            System.out.println((i + 1) + ". " + r.descripcionGeneral());
+        }
+    }
+
+    public void mostrarDetalle(int indice) {
+        if (indice < 1 || indice > recetas.size()) {
+            System.out.println("Índice inválido.");
+        } else {
+            recetas.get(indice - 1).mostrarDetalle();
+        }
+    }
+}
+
+// Clase principal
+public class RecetarioApp {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        Recetario recetario = new Recetario();
+        int opcion;
+
+        do {
+            System.out.println("\n--- MENÚ ---");
+            System.out.println("1. Añadir nueva receta");
+            System.out.println("2. Mostrar resumen de recetas");
+            System.out.println("3. Mostrar detalle de una receta");
+            System.out.println("0. Salir");
+            System.out.print("Opción: ");
+            opcion = Integer.parseInt(sc.nextLine());
+
+            switch (opcion) {
+                case 1:
+                    System.out.print("Nombre de la receta: ");
+                    String nombre = sc.nextLine();
+                    System.out.print("¿Es dulce o salada? (d/s): ");
+                    String tipo = sc.nextLine();
+                    Receta receta = tipo.equalsIgnoreCase("d") ?
+                                    new RecetaDulce(nombre) :
+                                    new RecetaSalada(nombre);
+
+                    System.out.print("¿Cuántos ingredientes?: ");
+                    int numIng = Integer.parseInt(sc.nextLine());
+                    for (int i = 0; i < numIng; i++) {
+                        System.out.print("Nombre del ingrediente: ");
+                        String nomIng = sc.nextLine();
+                        System.out.print("Cantidad: ");
+                        double cant = Double.parseDouble(sc.nextLine());
+                        System.out.print("Unidad: ");
+                        String unidad = sc.nextLine();
+                        receta.agregarIngrediente(new Ingrediente(nomIng, cant, unidad));
+                    }
+
+                    System.out.print("¿Cuántos pasos de preparación?: ");
+                    int numPasos = Integer.parseInt(sc.nextLine());
+                    for (int i = 0; i < numPasos; i++) {
+                        System.out.print("Paso " + (i + 1) + ": ");
+                        String paso = sc.nextLine();
+                        receta.agregarPaso(paso);
+                    }
+
+                    recetario.agregarReceta(receta);
+                    System.out.println("Receta añadida exitosamente.");
+                    break;
+
+                case 2:
+                    recetario.mostrarResumen();
+                    break;
+
+                case 3:
+                    System.out.print("Número de receta a mostrar: ");
+                    int indice = Integer.parseInt(sc.nextLine());
+                    recetario.mostrarDetalle(indice);
+                    break;
+
+                case 0:
+                    System.out.println("¡Hasta luego!");
+                    break;
+
+                default:
+                    System.out.println("Opción no válida.");
+            }
+        } while (opcion != 0);
+
+        sc.close();
+    }
+}
