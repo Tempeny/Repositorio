@@ -1,0 +1,96 @@
+import java.util.Scanner;
+
+// Clase base
+abstract class MascotaVirtual {
+    protected String nombre;
+    protected int energia;
+    protected int felicidad;
+
+    public MascotaVirtual(String nombre) {
+        this.nombre = nombre;
+        this.energia = 50;
+        this.felicidad = 50;
+    }
+
+    public void comer() {
+        energia += 10;
+        System.out.println(nombre + " ha comido y recuperado energía.");
+    }
+
+    public void jugar() {
+        if (energia >= 10) {
+            energia -= 10;
+            felicidad += 10;
+            System.out.println(nombre + " ha jugado y está más feliz.");
+        } else {
+            System.out.println(nombre + " está muy cansado para jugar.");
+        }
+    }
+
+    public void mostrarEstado() {
+        System.out.println("\nEstado de " + nombre + ":");
+        System.out.println("Energía: " + energia);
+        System.out.println("Felicidad: " + felicidad);
+    }
+}
+
+// Subclase Perro
+class PerroVirtual extends MascotaVirtual {
+    public PerroVirtual(String nombre) {
+        super(nombre);
+    }
+
+    @Override
+    public void jugar() {
+        if (energia >= 10) {
+            energia -= 10;
+            felicidad += 20; // Doble felicidad
+            System.out.println(nombre + " ha jugado y está muy feliz. ¡Guau!");
+        } else {
+            System.out.println(nombre + " está muy cansado para jugar.");
+        }
+    }
+}
+
+// Subclase Gato
+class GatoVirtual extends MascotaVirtual {
+    public GatoVirtual(String nombre) {
+        super(nombre);
+    }
+
+    @Override
+    public void comer() {
+        energia += 20; // Recupera más energía
+        System.out.println(nombre + " ha comido con estilo felino.");
+    }
+}
+
+// Subclase Hamster
+class HamsterVirtual extends MascotaVirtual {
+    public HamsterVirtual(String nombre) {
+        super(nombre);
+    }
+
+    @Override
+    public void jugar() {
+        if (energia >= 5) {
+            energia -= 15; // Se cansa más rápido
+            felicidad += 10;
+            System.out.println(nombre + " ha corrido en su rueda y está feliz.");
+        } else {
+            System.out.println(nombre + " está agotado.");
+        }
+    }
+}
+
+// Clase principal
+public class MascotaApp {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        MascotaVirtual mascota = null;
+
+        System.out.println("Elige una mascota:\n1. Perro\n2. Gato\n3. Hámster");
+        int eleccion = sc.nextInt();
+        sc.nextLine();  // limpiar buffer
+
+        System.out.print("Ingresa
