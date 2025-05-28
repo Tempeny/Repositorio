@@ -1,0 +1,108 @@
+import java.util.ArrayList;
+import java.util.List;
+
+// Clase base Persona
+class Persona {
+    protected String nombre;
+    protected int edad;
+
+    public Persona(String nombre, int edad) {
+        this.nombre = nombre;
+        this.edad = edad;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public int getEdad() {
+        return edad;
+    }
+
+    public String toString() {
+        return nombre + " (" + edad + " años)";
+    }
+}
+
+// Clase Estudiante hereda de Persona
+class Estudiante extends Persona {
+    private String grado;
+
+    public Estudiante(String nombre, int edad, String grado) {
+        super(nombre, edad);
+        this.grado = grado;
+    }
+
+    public String getGrado() {
+        return grado;
+    }
+
+    @Override
+    public String toString() {
+        return "Estudiante: " + super.toString() + " - Grado: " + grado;
+    }
+}
+
+// Clase Profesor hereda de Persona
+class Profesor extends Persona {
+    private String especialidad;
+
+    public Profesor(String nombre, int edad, String especialidad) {
+        super(nombre, edad);
+        this.especialidad = especialidad;
+    }
+
+    public String getEspecialidad() {
+        return especialidad;
+    }
+
+    @Override
+    public String toString() {
+        return "Profesor: " + super.toString() + " - Especialidad: " + especialidad;
+    }
+}
+
+// Clase Curso
+class Curso {
+    private String nombreCurso;
+    private Profesor profesor;
+    private List<Estudiante> estudiantes;
+
+    public Curso(String nombreCurso, Profesor profesor) {
+        this.nombreCurso = nombreCurso;
+        this.profesor = profesor;
+        this.estudiantes = new ArrayList<>();
+    }
+
+    public void agregarEstudiante(Estudiante e) {
+        estudiantes.add(e);
+    }
+
+    public void mostrarParticipantes() {
+        System.out.println("Curso: " + nombreCurso);
+        System.out.println(profesor.toString());
+        System.out.println("Estudiantes:");
+        for (Estudiante e : estudiantes) {
+            System.out.println(" - " + e.toString());
+        }
+    }
+}
+
+// Programa principal
+public class Escuela {
+    public static void main(String[] args) {
+        Profesor profe = new Profesor("Laura García", 40, "Matemáticas");
+
+        Estudiante e1 = new Estudiante("Ana López", 15, "10º");
+        Estudiante e2 = new Estudiante("Carlos Pérez", 16, "10º");
+        Estudiante e3 = new Estudiante("Sofía Torres", 15, "10º");
+
+        Curso curso = new Curso("Álgebra Avanzada", profe);
+
+        curso.agregarEstudiante(e1);
+        curso.agregarEstudiante(e2);
+        curso.agregarEstudiante(e3);
+
+        curso.mostrarParticipantes();
+    }
+}
