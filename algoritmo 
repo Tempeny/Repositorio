@@ -1,33 +1,247 @@
-public class Mision {
-    public enum Tipo { EXPLORACION, RECOLECCION, COLONIZACION }
-    public enum Estado { PENDIENTE, COMPLETADA, FALLIDA }
+import java.util.*;
 
-    private String nombre;
-    private int duracion;
-    private int prioridad;
-    private Tipo tipo;
-    private Estado estado;
-    private int experienciaRequerida;
-    private String evento;
-    private Nave naveAsignada;
+public class SistemaEspacial {
+    // ---------- ENUMERACIONES ----------
+    enum TipoMision { EXPLORACION, RECOLECCION, COLONIZACION }
+    enum EstadoMision { PENDIENTE, COMPLETADA, FALLIDA }
 
-    public Mision(String nombre, int duracion, int prioridad, Tipo tipo, int experienciaRequerida) {
-        this.nombre = nombre;
-        this.duracion = duracion;
-        this.prioridad = prioridad;
-        this.tipo = tipo;
-        this.estado = Estado.PENDIENTE;
-        this.experienciaRequerida = experienciaRequerida;
+    // ---------- CLASE MISION ----------
+    static class Mision {
+        String nombre;
+        int duracion;
+        int prioridad;
+        TipoMision tipo;
+        EstadoMision estado = EstadoMision.PENDIENTE;
+        int experienciaRequerida;
+        String evento = null;
+        Nave naveAsignada = null;
+
+        Mision(String nombre, int duracion, int prioridad, TipoMision tipo, int experienciaRequerida) {
+            this.nombre = nombre;
+            this.duracion = duracion;
+            this.prioridad = prioridad;
+            this.tipo = tipo;
+            this.experienciaRequerida = experienciaRequerida;
+        }
+
+        String resumen() {
+            return String.format("Misión: %s | Tipo: %s | Estado: %s | Nave: %s | Evento: %s",
+                    nombre, tipo, estado,
+                    naveAsignada != null ? naveAsignada.nombre : "N/A",
+                    evento != null ? evento : "Ninguno");
+        }
     }
 
-    // Getters y setters
-    // ...
-    
-    public String getResumen() {
-        return String.format("%s (%s) - %s - Nave: %s - Evento: %s", 
-            nombre, tipo, estado, naveAsignada != null ? naveAsignada.getNombre() : "N/A", evento);
+    // ---------- CLASE NAVE ----------
+    static class Nave {
+        String nombre;
+        int autonomiaMaxima;
+        int autonomiaActual;
+        int capacidadCarga;
+        boolean sensoresCientificos;
+        int experienciaTotal = 0;
+        int experienciaTecnica = 0;
+        int experienciaCientifica = 0;
+        int experienciaEstrategica = 0;
+        int misionesRealizadas = 0;
+
+        Nave(String nombre, int autonomiaMaxima, int capacidadCarga, boolean sensoresCientificos) {
+            this.nombre = nombre;
+            this.autonomiaMaxima = autonomiaMaxima;
+            this.autonomiaActual = autonomiaMaxima;
+            this.capacidadCarga = capacidadCarga;
+            this.sensoresCientificos = sensoresCientificos;
+        }
+
+        boolean esApta(Mision m) {
+            if (autonomiaActual < m.duracion) return false;
+            return switch (m.tipo) {
+                case EXPLORACION -> autonomiaMaxima > 1000 && experienciaCientifica >= m.experienciaRequerida;
+                case RECOLECCION -> sensoresCientificos && experienciaTecnica >= m.experienciaRequerida;
+                case COLONIZACION -> capacidadCarga >= 500 && experienciaEstrategica >= m.experienciaRequerida;
+            };
+        }
+
+        void ejecutarMision(Mision m) {
+            autonomiaActual -= m.duracion;
+            misionesRealizadas++;
+            m.naveAsignada = this;
+            m.evento = generarEvento();
+
+            if ("Fallo".equals(m.evento)) {
+                m.estado = EstadoMision.FALLIDA;
+                return;
+            }
+
+            switch (m.tipo) {
+                case EXPLORACION -> experienciaCientifica++;
+                case RECOLECCION -> experienciaTecnica++;
+                case COLONIZACION -> experienciaEstrategica++;
+            }
+
+            experienciaTotal++;
+
+            if ("Mejora".equals(m.evento)) experienciaTotal += 2;
+
+            m.estado = EstadoMision.COMPLETADA;
+        }
+
+        String generarEvento() {
+            double r = Math.random();
+            if (r < 0.10) return "Fallo";
+            if (r < 0.15) return "Mejora";
+            if (r < 0.20) return "Descubrimiento";
+            return null;
+        }
+
+        void restaurarAutonomia() {
+            autonomiaActual = autonomiaMaxima;
+        }
+
+        String resumen() {
+            return String.format("Nave: %s | Exp: %d | Autonomía: %d/%d | Misiones: %d",
+                    nombre, experienciaTotal, autonomiaActual, autonomiaMaxima, misionesRealizadas);
+        }
     }
 
-    // Getters necesarios (ej: getDuracion, getTipo, etc.)
-    // ...
+    // ---------- SISTEMA PRINCIPAL ----------
+    List<Nave> naves = new ArrayList<>();
+    List<Mision> misiones = new ArrayList<>();
+    List<Mision> historial = new ArrayList<>();
+
+    void registrarNave(Scanner sc) {
+        System.out.print("Nombre: ");
+        String nombre = sc.nextLine();
+        System.out.print("Autonomía máxima: ");
+        int auto = Integer.parseInt(sc.nextLine());
+        System.out.print("Capacidad carga: ");
+        int carga = Integer.parseInt(sc.nextLine());
+        System.out.print("¿Tiene sensores científicos? (true/false): ");
+        boolean sensores = Boolean.parseBoolean(sc.nextLine());
+
+        naves.add(new Nave(nombre, auto, carga, sensores));
+        System.out.println("Nave registrada.\n");
+    }
+
+    void registrarMision(Scanner sc) {
+        System.out.print("Nombre de misión: ");
+        String nombre = sc.nextLine();
+        System.out.print("Duración (horas): ");
+        int duracion = Integer.parseInt(sc.nextLine());
+        System.out.print("Prioridad (1-10): ");
+        int prioridad = Integer.parseInt(sc.nextLine());
+        System.out.print("Tipo (EXPLORACION, RECOLECCION, COLONIZACION): ");
+        TipoMision tipo = TipoMision.valueOf(sc.nextLine().toUpperCase());
+        System.out.print("Experiencia requerida: ");
+        int experiencia = Integer.parseInt(sc.nextLine());
+
+        misiones.add(new Mision(nombre, duracion, prioridad, tipo, experiencia));
+        System.out.println("Misión registrada.\n");
+    }
+
+    void ejecutarCiclo() {
+        var pendientes = misiones.stream()
+                .filter(m -> m.estado == EstadoMision.PENDIENTE)
+                .sorted(Comparator.comparingInt((Mision m) -> m.prioridad).reversed())
+                .toList();
+
+        Set<Nave> usadas = new HashSet<>();
+
+        for (Mision m : pendientes) {
+            var aptas = naves.stream()
+                    .filter(n -> !usadas.contains(n) && n.esApta(m))
+                    .sorted(Comparator.comparingInt((Nave n) -> n.autonomiaActual).reversed()
+                            .thenComparingInt(n -> -n.experienciaTotal)
+                            .thenComparing(n -> n.nombre))
+                    .toList();
+
+            if (!aptas.isEmpty()) {
+                Nave seleccionada = aptas.get(0);
+                seleccionada.ejecutarMision(m);
+                usadas.add(seleccionada);
+                historial.add(m);
+            }
+        }
+
+        naves.forEach(Nave::restaurarAutonomia);
+        System.out.println("Ciclo completado.\n");
+    }
+
+    void mostrarHistorial() {
+        System.out.println("Historial de Misiones:");
+        historial.forEach(m -> System.out.println(m.resumen()));
+        System.out.println();
+    }
+
+    void mostrarEstadisticas() {
+        System.out.println("Estadísticas de Naves:");
+        naves.forEach(n -> System.out.println(n.resumen()));
+        System.out.println();
+    }
+
+    void mostrarRanking() {
+        System.out.println("Ranking de Naves por Experiencia:");
+        naves.stream()
+                .sorted(Comparator.comparingInt((Nave n) -> -n.experienciaTotal)
+                        .thenComparing(n -> n.nombre))
+                .forEach(n -> System.out.printf("%s - Exp: %d\n", n.nombre, n.experienciaTotal));
+        System.out.println();
+    }
+
+    void buscarMisiones(Scanner sc) {
+        System.out.print("Tipo (EXPLORACION, RECOLECCION, COLONIZACION, o ENTER): ");
+        String tipoStr = sc.nextLine();
+        TipoMision tipo = tipoStr.isEmpty() ? null : TipoMision.valueOf(tipoStr.toUpperCase());
+
+        System.out.print("Prioridad (1-10 o ENTER): ");
+        String prioStr = sc.nextLine();
+        Integer prioridad = prioStr.isEmpty() ? null : Integer.parseInt(prioStr);
+
+        System.out.print("Estado (PENDIENTE, COMPLETADA, FALLIDA o ENTER): ");
+        String estadoStr = sc.nextLine();
+        EstadoMision estado = estadoStr.isEmpty() ? null : EstadoMision.valueOf(estadoStr.toUpperCase());
+
+        System.out.println("Resultados:");
+        misiones.stream()
+                .filter(m -> (tipo == null || m.tipo == tipo)
+                        && (prioridad == null || m.prioridad == prioridad)
+                        && (estado == null || m.estado == estado))
+                .forEach(m -> System.out.println(m.resumen()));
+        System.out.println();
+    }
+
+    // ---------- MAIN ----------
+    public static void main(String[] args) {
+        SistemaEspacial sistema = new SistemaEspacial();
+        Scanner sc = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("---- MENÚ ----");
+            System.out.println("1. Registrar nave");
+            System.out.println("2. Registrar misión");
+            System.out.println("3. Ejecutar ciclo");
+            System.out.println("4. Ver historial de misiones");
+            System.out.println("5. Ver estadísticas por nave");
+            System.out.println("6. Ver ranking de naves");
+            System.out.println("7. Buscar/filtrar misiones");
+            System.out.println("0. Salir");
+            System.out.print("Opción: ");
+            String opcion = sc.nextLine();
+
+            switch (opcion) {
+                case "1" -> sistema.registrarNave(sc);
+                case "2" -> sistema.registrarMision(sc);
+                case "3" -> sistema.ejecutarCiclo();
+                case "4" -> sistema.mostrarHistorial();
+                case "5" -> sistema.mostrarEstadisticas();
+                case "6" -> sistema.mostrarRanking();
+                case "7" -> sistema.buscarMisiones(sc);
+                case "0" -> {
+                    System.out.println("Saliendo...");
+                    return;
+                }
+                default -> System.out.println("Opción inválida.");
+            }
+        }
+    }
 }
