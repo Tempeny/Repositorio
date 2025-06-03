@@ -1,148 +1,33 @@
-import random
-from typing import List, Optional
-from collections import defaultdict
+public class Mision {
+    public enum Tipo { EXPLORACION, RECOLECCION, COLONIZACION }
+    public enum Estado { PENDIENTE, COMPLETADA, FALLIDA }
 
-class Mision:
-    def __init__(self, nombre, duracion, prioridad, tipo, experiencia_requerida):
-        self.nombre = nombre
-        self.duracion = duracion
-        self.prioridad = prioridad
-        self.tipo = tipo  # Exploración, Recolección de Datos, Colonización
-        self.estado = "Pendiente"
-        self.experiencia_requerida = experiencia_requerida
-        self.evento = None
-        self.nave_asignada = None
+    private String nombre;
+    private int duracion;
+    private int prioridad;
+    private Tipo tipo;
+    private Estado estado;
+    private int experienciaRequerida;
+    private String evento;
+    private Nave naveAsignada;
 
-    def __str__(self):
-        return f"{self.tipo} - {self.nombre} ({self.estado})"
+    public Mision(String nombre, int duracion, int prioridad, Tipo tipo, int experienciaRequerida) {
+        this.nombre = nombre;
+        this.duracion = duracion;
+        this.prioridad = prioridad;
+        this.tipo = tipo;
+        this.estado = Estado.PENDIENTE;
+        this.experienciaRequerida = experienciaRequerida;
+    }
 
-class Nave:
-    def __init__(self, nombre, autonomia_maxima, capacidad_carga, sensores_cientificos):
-        self.nombre = nombre
-        self.autonomia_maxima = autonomia_maxima
-        self.autonomia_actual = autonomia_maxima
-        self.capacidad_carga = capacidad_carga
-        self.sensores_cientificos = sensores_cientificos
-        self.experiencia_total = 0
-        self.experiencia = {
-            "tecnica": 0,
-            "cientifica": 0,
-            "estrategica": 0
-        }
-        self.misiones_realizadas = 0
+    // Getters y setters
+    // ...
+    
+    public String getResumen() {
+        return String.format("%s (%s) - %s - Nave: %s - Evento: %s", 
+            nombre, tipo, estado, naveAsignada != null ? naveAsignada.getNombre() : "N/A", evento);
+    }
 
-    def es_apta(self, mision: Mision):
-        if self.autonomia_actual < mision.duracion:
-            return False
-
-        if mision.tipo == "Exploración":
-            return self.autonomia_maxima > 1000 and self.experiencia["cientifica"] >= mision.experiencia_requerida
-        elif mision.tipo == "Recolección de Datos":
-            return self.sensores_cientificos and self.experiencia["tecnica"] >= mision.experiencia_requerida
-        elif mision.tipo == "Colonización":
-            return self.capacidad_carga >= 500 and self.experiencia["estrategica"] >= mision.experiencia_requerida
-        return False
-
-    def ejecutar_mision(self, mision: Mision):
-        self.autonomia_actual -= mision.duracion
-        self.misiones_realizadas += 1
-
-        evento = self.generar_evento()
-        mision.evento = evento
-        mision.nave_asignada = self
-
-        if evento == "Fallo":
-            mision.estado = "Fallida"
-            return
-
-        tipo_exp = {
-            "Exploración": "cientifica",
-            "Recolección de Datos": "tecnica",
-            "Colonización": "estrategica"
-        }[mision.tipo]
-
-        self.experiencia[tipo_exp] += 1
-        self.experiencia_total += 1
-        if evento == "Mejora":
-            self.experiencia[tipo_exp] += 2
-            self.experiencia_total += 2
-
-        mision.estado = "Completada"
-
-    def restaurar_autonomia(self):
-        self.autonomia_actual = self.autonomia_maxima
-
-    def generar_evento(self):
-        rnd = random.random()
-        if rnd < 0.10:
-            return "Fallo"
-        elif rnd < 0.15:
-            return "Mejora"
-        elif rnd < 0.20:
-            return "Descubrimiento"
-        return None
-
-class AgenciaEspacial:
-    def __init__(self):
-        self.misiones: List[Mision] = []
-        self.naves: List[Nave] = []
-        self.historial = []
-
-    def registrar_mision(self, mision: Mision):
-        self.misiones.append(mision)
-
-    def registrar_nave(self, nave: Nave):
-        self.naves.append(nave)
-
-    def ejecutar_ciclo(self):
-        pendientes = sorted(
-            [m for m in self.misiones if m.estado == "Pendiente"],
-            key=lambda m: -m.prioridad
-        )
-        usadas = set()
-
-        for mision in pendientes:
-            candidatas = [
-                nave for nave in self.naves
-                if nave not in usadas and nave.es_apta(mision)
-            ]
-
-            if not candidatas:
-                continue
-
-            candidatas.sort(key=lambda n: (-n.autonomia_actual, -n.experiencia_total, n.nombre))
-            nave_seleccionada = candidatas[0]
-            usadas.add(nave_seleccionada)
-            nave_seleccionada.ejecutar_mision(mision)
-            self.historial.append(mision)
-
-        for nave in self.naves:
-            nave.restaurar_autonomia()
-
-    def mostrar_historial(self):
-        for m in self.historial:
-            print(f"{m.nombre} ({m.tipo}) - {m.estado} - Nave: {m.nave_asignada.nombre if m.nave_asignada else 'N/A'} - Evento: {m.evento}")
-
-    def estadisticas_por_nave(self):
-        for n in self.naves:
-            print(f"\nNave: {n.nombre}")
-            print(f"  Misiones realizadas: {n.misiones_realizadas}")
-            print(f"  Experiencia total: {n.experiencia_total}")
-            print(f"  Autonomía actual: {n.autonomia_actual}")
-            print(f"  Técnica: {n.experiencia['tecnica']} / Científica: {n.experiencia['cientifica']} / Estratégica: {n.experiencia['estrategica']}")
-
-    def ranking_naves(self):
-        ranking = sorted(self.naves, key=lambda n: (-n.experiencia_total, n.nombre))
-        print("\nRanking de Naves por Experiencia:")
-        for i, n in enumerate(ranking, 1):
-            print(f"{i}. {n.nombre} - {n.experiencia_total} puntos")
-
-    def filtrar_misiones(self, tipo=None, prioridad=None, estado=None):
-        resultados = self.misiones
-        if tipo:
-            resultados = [m for m in resultados if m.tipo == tipo]
-        if prioridad:
-            resultados = [m for m in resultados if m.prioridad == prioridad]
-        if estado:
-            resultados = [m for m in resultados if m.estado == estado]
-        return resultados
+    // Getters necesarios (ej: getDuracion, getTipo, etc.)
+    // ...
+}
