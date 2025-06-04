@@ -1,16 +1,161 @@
-public static Mision buscarMision() {
-    Scanner scanner = new Scanner(System.in);
-    System.out.print("Ingrese el nombre de la misión a buscar: ");
-    String nombreBuscado = scanner.nextLine();
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
-    for (Mision m : misiones) {
-        if (m.getNombre().equalsIgnoreCase(nombreBuscado)) {
-            System.out.println("\nMisión encontrada:");
-            m.logMision();
-            return m;
+public class NavesEspaciales {
+
+    private static List<NavesEspaciales> naves = new ArrayList<>();
+
+    private String nombre;
+    private int autonomiaMaxima;
+    private int autonomiaActual;
+    private int capacidadCarga;
+    private boolean sensoresCientificos;
+    private int experienciaTotal;
+    private int experienciaTecnica;
+    private int experienciaCientifica;
+    private int experienciaEstrategica;
+
+    public NavesEspaciales(String nombre, int autonomiaMaxima, int autonomiaActual, int capacidadCarga, boolean sensoresCientificos, int experienciaTotal, int experienciaTecnica, int experienciaCientifica, int experienciaEstrategica) {
+        this.nombre = nombre;
+        this.autonomiaMaxima = autonomiaMaxima;
+        this.autonomiaActual = autonomiaActual;
+        this.capacidadCarga = capacidadCarga;
+        this.sensoresCientificos = sensoresCientificos;
+        this.experienciaTotal = experienciaTotal;
+        this.experienciaTecnica = experienciaTecnica;
+        this.experienciaCientifica = experienciaCientifica;
+        this.experienciaEstrategica = experienciaEstrategica;
+    }
+
+    public static NavesEspaciales registrarNave() {
+        Scanner scanner = new Scanner(System.in);
+
+        String nombre;
+        while (true) {
+            System.out.println("Nombre de la nave: ");
+            nombre = scanner.nextLine();
+            boolean nombreExiste = naves.stream().anyMatch(n -> n.getNombre().equalsIgnoreCase(nombre));
+            if (nombreExiste) {
+                System.out.println("Error: Ya existe una nave con ese nombre. Ingrese un nombre único.");
+            } else {
+                break;
+            }
+        }
+
+        int autonomiaMaxima;
+        while (true) {
+            System.out.println("Autonomía máxima: ");
+            autonomiaMaxima = scanner.nextInt();
+            if (autonomiaMaxima <= 0) {
+                System.out.println("Error: La autonomía máxima debe ser mayor que 0.");
+            } else {
+                break;
+            }
+        }
+
+        int autonomiaActual;
+        while (true) {
+            System.out.println("Autonomía actual: ");
+            autonomiaActual = scanner.nextInt();
+            if (autonomiaActual <= 0) {
+                System.out.println("Error: La autonomía actual debe ser mayor que 0.");
+            } else if (autonomiaActual > autonomiaMaxima) {
+                System.out.println("Error: La autonomía actual no puede ser mayor que la autonomía máxima.");
+            } else {
+                break;
+            }
+        }
+
+        int capacidadCarga;
+        while (true) {
+            System.out.println("Capacidad de carga: ");
+            capacidadCarga = scanner.nextInt();
+            if (capacidadCarga <= 0) {
+                System.out.println("Error: La capacidad de carga debe ser mayor que 0.");
+            } else {
+                break;
+            }
+        }
+
+        System.out.println("¿Sensores científicos? (true/false): ");
+        boolean sensoresCientificos = scanner.nextBoolean();
+
+        System.out.println("Experiencia total: ");
+        int experienciaTotal = scanner.nextInt();
+
+        System.out.println("Experiencia técnica: ");
+        int experienciaTecnica = scanner.nextInt();
+
+        System.out.println("Experiencia científica: ");
+        int experienciaCientifica = scanner.nextInt();
+
+        System.out.println("Experiencia estratégica: ");
+        int experienciaEstrategica = scanner.nextInt();
+        scanner.nextLine(); // Limpiar buffer
+
+        NavesEspaciales nave = new NavesEspaciales(nombre, autonomiaMaxima, autonomiaActual,
+                capacidadCarga, sensoresCientificos, experienciaTotal, experienciaTecnica,
+                experienciaCientifica, experienciaEstrategica);
+
+        naves.add(nave);
+        System.out.println("Nave registrada exitosamente.");
+
+        return nave;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public int getAutonomiaMaxima() {
+        return autonomiaMaxima;
+    }
+
+    public int getAutonomiaActual() {
+        return autonomiaActual;
+    }
+
+    public int getCapacidadCarga() {
+        return capacidadCarga;
+    }
+
+    public boolean tieneSensoresCientificos() {
+        return sensoresCientificos;
+    }
+
+    public int getExperienciaTotal() {
+        return experienciaTotal;
+    }
+
+    public int getExperienciaTecnica() {
+        return experienciaTecnica;
+    }
+
+    public int getExperienciaCientifica() {
+        return experienciaCientifica;
+    }
+
+    public int getExperienciaEstrategica() {
+        return experienciaEstrategica;
+    }
+
+    public static void logNaves() {
+        System.out.println("******NAVES*****");
+        for (NavesEspaciales nave : naves) {
+            nave.logNave();
         }
     }
 
-    System.out.println("No se encontró ninguna misión con ese nombre.");
-    return null;
+    public void logNave() {
+        System.out.println("\nNombre: " + this.nombre +
+                "\nAutonomía máxima: " + this.autonomiaMaxima +
+                "\nAutonomía actual: " + this.autonomiaActual +
+                "\nCapacidad de carga: " + this.capacidadCarga +
+                "\nSensores científicos: " + this.sensoresCientificos +
+                "\nExperiencia total: " + this.experienciaTotal +
+                "\nExperiencia técnica: " + this.experienciaTecnica +
+                "\nExperiencia científica: " + this.experienciaCientifica +
+                "\nExperiencia estratégica: " + this.experienciaEstrategica);
+    }
 }
