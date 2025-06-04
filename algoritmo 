@@ -1,79 +1,16 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+public static Mision buscarMision() {
+    Scanner scanner = new Scanner(System.in);
+    System.out.print("Ingrese el nombre de la misión a buscar: ");
+    String nombreBuscado = scanner.nextLine();
 
-public class RegistrarNave {
-
-    private static List<NavesEspaciales> naves = new ArrayList<>();
-
-    public static NavesEspaciales registrarNave() {
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.print("Nombre de la nave: ");
-        String nombre = scanner.nextLine();
-
-        System.out.print("Autonomía máxima: ");
-        int autonomiaMax = scanner.nextInt();
-
-        System.out.print("Autonomía actual: ");
-        int autonomiaActual = scanner.nextInt();
-
-        System.out.print("Capacidad de carga: ");
-        int capacidadCarga = scanner.nextInt();
-
-        System.out.print("¿Tiene sensores científicos? (true/false): ");
-        boolean sensores = scanner.nextBoolean();
-
-        System.out.print("Experiencia total: ");
-        int expTotal = scanner.nextInt();
-
-        System.out.print("Experiencia técnica: ");
-        int expTecnica = scanner.nextInt();
-
-        System.out.print("Experiencia científica: ");
-        int expCientifica = scanner.nextInt();
-
-        System.out.print("Experiencia estratégica: ");
-        int expEstrategica = scanner.nextInt();
-        scanner.nextLine(); // limpiar buffer
-
-        NavesEspaciales nave = new NavesEspaciales(
-            nombre, autonomiaMax, autonomiaActual, capacidadCarga, sensores,
-            expTotal, expTecnica, expCientifica, expEstrategica
-        );
-
-        naves.add(nave);
-        System.out.println("Nave registrada exitosamente.\n");
-
-        return nave;
-    }
-
-    public static void logNaves() {
-        for (NavesEspaciales nave : naves) {
-            System.out.println("Nombre: " + nave.getNombre());
-            System.out.println("Autonomía Max: " + nave.getAutonomiaMaxima());
-            System.out.println("Autonomía Actual: " + nave.getAutonomiaActual());
-            System.out.println("Capacidad de Carga: " + nave.getCapacidadCarga());
-            System.out.println("Sensores Científicos: " + nave.tieneSensoresCientificos());
-            System.out.println("Experiencia Total: " + nave.getExperienciaTotal());
-            System.out.println("Experiencia Técnica: " + nave.getExperienciaTecnica());
-            System.out.println("Experiencia Científica: " + nave.getExperienciaCientifica());
-            System.out.println("Experiencia Estratégica: " + nave.getExperienciaEstrategica());
-            System.out.println("-------------------------------------------------");
+    for (Mision m : misiones) {
+        if (m.getNombre().equalsIgnoreCase(nombreBuscado)) {
+            System.out.println("\nMisión encontrada:");
+            m.logMision();
+            return m;
         }
     }
 
-    public static List<NavesEspaciales> getNaves() {
-        return naves;
-    }
-
-    public static List<NavesEspaciales> getNavesAptasPara(Mision m) {
-        List<NavesEspaciales> aptas = new ArrayList<>();
-        for (NavesEspaciales nave : naves) {
-            if (nave.esApta(m)) {
-                aptas.add(nave);
-            }
-        }
-        return aptas;
-    }
+    System.out.println("No se encontró ninguna misión con ese nombre.");
+    return null;
 }
