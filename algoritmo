@@ -1,81 +1,120 @@
+import java.util.ArrayList;
 import java.util.List;
-
 import enums.MissionStatus;
 import enums.MissionType;
 
 public class Simulacion {
 
-    static Mision misiones = new Mision() {
-        
-    };
-    static NavesEspaciales naves = new NavesEspaciales(null, 0, 0, 0, false, 0, 0, 0);
-    
-    static List<Mision> misionesPendientes;
-    static List<NavesEspaciales> navesAptas;
+    static List<Mision> misiones = new ArrayList<>();  // Lista de misiones disponibles
+    static List<NavesEspaciales> naves = new ArrayList<>();  // Lista de naves disponibles
+
+    static List<Mision> misionesPendientes = new ArrayList<>();
+    static List<NavesEspaciales> navesAptas = new ArrayList<>();
 
     public static void simularCiclo() {
 
-        //Listar Misiones y naves
-        int contador=0;      
-        int contador2=0;
-        for(Mision mision: misiones){
-            if(mision.getStatus()==MissionStatus.PENDIENTE){
+        int contador = 0;
+        int contador2 = 0;
+
+        // Filtrar misiones pendientes
+        for (Mision mision : misiones) {
+            if (mision.getStatus() == MissionStatus.PENDIENTE) {
                 misionesPendientes.add(mision);
                 contador++;
             }
         }
-        System.out.println("Misiones pendientes: "+ contador);
+        System.out.println("Misiones pendientes: " + contador);
 
-        for(NavesEspaciales nave : naves){
+        // Contar naves disponibles
+        for (NavesEspaciales nave : naves) {
             contador2++;
         }
-        System.out.println("Naves disponibles: "+ contador2);
+        System.out.println("Naves disponibles: " + contador2);
 
-        //Ordenar las misiones en el array
-        misionesPendientes.sort(mision.getPrioridad);
+        // Ordenar las misiones por prioridad
+        misionesPendientes.sort((m1, m2) -> Integer.compare(m2.getPrioridad(), m1.getPrioridad()));
 
-        //Mostrar las misiones ya ordenadas, depende del tipo de misión mostrará diferente información
-        for(Mision mision : misionesPendientes){
-            System.out.println("Evaluando misión: "+mision.getNombre()+" [prioridad: "+mision.getPrioridad()+"]\nRequiere: ");
-            if(mision.MissionType==MissionType.COLONIZACION){
-                System.out.println("carga>="+MisionColonizacion.getCarga()+", experiencia estratégica>= "+MisionColonizacion.getXP());
-            }
-            else if(mision.MissionType==MissionType.EXPLORACION){
-                System.out.println("autonomía>="+MisionExploracion.getAutonomia()+", experiencia científica>= "+MisionExploracion.getXP());
-            }
-            else{
-                System.out.println("sensores científicos = true, experiencia técnica >="+MisionRecoleccion.getXP());
+        // Evaluar cada misión
+        List<Mision> misionesCompletadas = new ArrayList<>();
+
+        for (Mision mision : misionesPendientes) {
+            System.out.println("\nEvaluando misión: " + mision.getNombre() +
+                    " [prioridad: " + mision.getPrioridad() + "]\nRequiere: ");
+
+            boolean misionEjecutada = false;
+
+            // Mostrar requisitos según el tipo
+            if (mision.getTipo() == MissionType.COLONIZACION) {
+                System.out.println("Carga mínima y experiencia estratégica");
+            } else if (mision.getTipo() == MissionType.EXPLORACION) {
+                System.out.println("Autonomía mínima y experiencia científica");
+            } else if (mision.getTipo() == MissionType.RECOLECCION_DATOS) {
+                System.out.println("Sensores científicos y experiencia técnica");
             }
 
-            //Bucle para mirar las naves y mirar si la nave puede hacer la misión
-            for(NavesEspaciales nave : naves){
-                if(mision.MissionType==MissionType.COLONIZACION){
-                    nave.getCapacidadCarga()>=MisionColonizacion.getCarga() && nave.getExperienciaEstrategica()>= MisionColonizacion.getXP();
+            // Buscar una nave apta
+            for (NavesEspaciales nave : new ArrayList<>(naves)) { // Copia para evitar ConcurrentModificationException
+                boolean apta = false;
+
+                switch (mision.getTipo()) {
+                    case COLONIZACION:
+                        if (nave.getCapacidadCarga() >= mision.getCargaRequerida()
+                                && nave.getExperienciaEstrategica() >= mision.getXPRequerido()) {
+                            apta = true;
+                            nave.ganarExperienciaEstrategica(1);
+                        }
+                        break;
+                    case EXPLORACION:
+                        if (nave.getAutonomiaActual() >= mision.getAutonomiaRequerida()
+                                && nave.getExperienciaCientifica() >= mision.getXPRequerido()) {
+                            apta = true;
+                            nave.ganarExperienciaCientifica(1);
+                        }
+                        break;
+                    case RECOLECCION_DATOS:
+                        if (nave.tieneSensoresCientificos()
+                                && nave.getExperienciaTecnica() >= mision.getXPRequerido()) {
+                            apta = true;
+                            nave.ganarExperienciaTecnica(1);
+                        }
+                        break;
+                }
+
+                if (apta) {
+                    System.out.println("Nave seleccionada: " + nave.getNombre());
+                    System.out.println("Ejecutando misión...");
+                    System.out.println("Evento aleatorio: " + eventoAleatorio());
+
+                    nave.usarAutonomia(5); // Simula consumo de autonomía
                     navesAptas.add(nave);
                     naves.remove(nave);
-                    misionesPendientes.remove(mision);
-                    System.out.println("Nave seleccionada: "+nave.getNombre()+"\nEjecutando misión...\nExperiencia ganada +1 Estratégica\nEvento aleatorio: "+eventoAleatorio()+"\nAutonomía restante: "+(nave.getAutonomiaMaxima()-5));
+                    misionesCompletadas.add(mision);
+                    misionEjecutada = true;
+                    break; // Salir del bucle de naves
                 }
-                else if(mision.MissionType==MissionType.EXPLORACION){
-                    nave.getAutonomiaActual()>=MisionExploracion.getAutonomia() && nave.getExperienciaCientifica()>= MisionExploracion.getXP();
-                    navesAptas.add(nave);
-                    naves.remove(nave);
-                    misionesPendientes.remove(mision);
-                    System.out.println("Nave seleccionada: "+nave.getNombre()+"\nEjecutando misión...\nExperiencia ganada +1 Científica\nEvento aleatorio: "+eventoAleatorio()+"\nAutonomía restante: "+(nave.getAutonomiaMaxima()-5));
-                }
-                else if(mision.MissionType==MissionType.RECOLECCION_DATOS){
-                    nave.tieneSensoresCientificos()==true && nave.getExperienciaTecnica()>= MisionRecoleccion.getXP();
-                    navesAptas.add(nave);
-                    naves.remove(nave);
-                    misionesPendientes.remove(mision);
-                }
-                else{
-                        System.out.println("No hay naves aptas para esta misión");
-                    }
-                nave.getAutonomiaActual() = nave.getautonomiaMaxima();
-                }
-                System.out.println("Autonomía restaurada en todas las naves");
-                return;
+            }
+
+            if (!misionEjecutada) {
+                System.out.println("No hay naves aptas para esta misión.");
             }
         }
+
+        // Marcar misiones como completadas
+        for (Mision m : misionesCompletadas) {
+            misionesPendientes.remove(m);
+            m.setStatus(MissionStatus.COMPLETADA);
+        }
+
+        // Restaurar autonomía a todas las naves (simulación)
+        for (NavesEspaciales nave : navesAptas) {
+            nave.restaurarAutonomia();
+        }
+        System.out.println("\nAutonomía restaurada en todas las naves aptas.");
     }
+
+    public static String eventoAleatorio() {
+        // Simulación básica
+        String[] eventos = {"Nada relevante", "Fallo menor", "Descubrimiento importante", "Retraso inesperado"};
+        return eventos[(int) (Math.random() * eventos.length)];
+    }
+}
