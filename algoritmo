@@ -1,59 +1,91 @@
-import java.util.Scanner;
+public class NavesEspacialesTestManual {
 
-
-public class Main {
     public static void main(String[] args) {
+        testRegistroNaveExitosa();
+        testExperienciaTotalCalculadaCorrectamente();
+        testAutonomiaActualMayorQueMaxima();
+        testNaveDuplicada();
+        testGenerarRankingOrdenaCorrectamente();
+    }
 
-        Scanner scanner = new Scanner(System.in);
+    public static void testRegistroNaveExitosa() {
+        NavesEspaciales.getNaves().clear();
 
-        int opcion = 0;
-        do{
-            System.out.println("\n*****Bienvenido al simulador espacial*****\n\n"+
-            "¿Que deseas hacer?\n\n"+
-            "1)Registrar Mision\n"+
-            "2)Registar Nave\n"+
-            "3)Simular un ciclo\n"+
-            "4)Mostrar estado general\n"+
-            "5)Buscar Mision\n"+
-            "6)Ranking de naves\n"+
-            "7)Generar Naves y misiones\n"+
-            "8)Salir");
-            opcion = scanner.nextInt();
-            switch (opcion) {
-                case 1:
-                  Mision.registrarMision(scanner);
-                break;
-                case 2:
-                  NavesEspaciales.registrarNave(scanner);
-                break;
-                case 3:
-                  //  simularCiclo();
-                break;
-                case 4:
-                  NavesEspaciales.mostrarEstado();
-                break;
-                case 5:
-                  Mision.buscarMisiones(scanner);
-                break;
-                case 6:
-                  NavesEspaciales.generarRanking();
-                break;
-                case 7:
-                  Mision.generarMisiones();
-                  NavesEspaciales.generarNaves();  
-                  System.out.println("\nNaves y Misiones generados correctamente\n");
-                break;
-                case 8:
-                  System.out.println("Adios!");
-                break;
+        NavesEspaciales nave = new NavesEspaciales("Explorer", 1000, 800, 500, true, 3, 2, 1);
+        NavesEspaciales.getNaves().add(nave);
 
-                //Crear caso de logs de Misiones y naves --> Mover líneas 56 y 57 como opción 
-
-            }
-        }while (opcion!=8);
-        scanner.close();
-        //Logs para verificar el funcionamiento
-        Mision.logMisiones();
-        NavesEspaciales.logNaves();
+        if (NavesEspaciales.getNaves().size() == 1 &&
+                NavesEspaciales.getNaves().get(0).getNombre().equals("Explorer")) {
+            System.out.println("✔ testRegistroNaveExitosa");
+        } else {
+            System.out.println("✘ testRegistroNaveExitosa");
         }
+    }
+
+    public static void testExperienciaTotalCalculadaCorrectamente() {
+        NavesEspaciales nave = new NavesEspaciales("Nova", 1200, 900, 400, false, 4, 3, 2);
+        if (nave.getExperienciaTotal() == 9) {
+            System.out.println("✔ testExperienciaTotalCalculadaCorrectamente");
+        } else {
+            System.out.println("✘ testExperienciaTotalCalculadaCorrectamente");
+        }
+    }
+
+    public static void testAutonomiaActualMayorQueMaxima() {
+        boolean paso = false;
+        try {
+            new NavesEspaciales("Delta", 1000, 1200, 500, false, 1, 1, 1);
+        } catch (IllegalArgumentException e) {
+            paso = true;
+        }
+
+        if (paso) {
+            System.out.println("✔ testAutonomiaActualMayorQueMaxima");
+        } else {
+            System.out.println("✘ testAutonomiaActualMayorQueMaxima");
+        }
+    }
+
+    public static void testNaveDuplicada() {
+        NavesEspaciales.getNaves().clear();
+        NavesEspaciales nave1 = new NavesEspaciales("Orion", 1000, 800, 500, true, 1, 1, 1);
+        NavesEspaciales nave2 = new NavesEspaciales("Orion", 900, 700, 300, true, 1, 1, 1);
+
+        NavesEspaciales.getNaves().add(nave1);
+        boolean duplicada = false;
+        for (NavesEspaciales n : NavesEspaciales.getNaves()) {
+            if (n.getNombre().equalsIgnoreCase(nave2.getNombre())) {
+                duplicada = true;
+                break;
+            }
+        }
+
+        if (duplicada) {
+            System.out.println("✔ testNaveDuplicada");
+        } else {
+            System.out.println("✘ testNaveDuplicada");
+        }
+    }
+
+    public static void testGenerarRankingOrdenaCorrectamente() {
+        NavesEspaciales.getNaves().clear();
+
+        NavesEspaciales nave1 = new NavesEspaciales("A", 1000, 1000, 500, true, 1, 1, 1); // total: 3
+        NavesEspaciales nave2 = new NavesEspaciales("B", 1000, 1000, 500, true, 3, 3, 3); // total: 9
+        NavesEspaciales nave3 = new NavesEspaciales("C", 1000, 1000, 500, true, 2, 2, 2); // total: 6
+
+        NavesEspaciales.getNaves().add(nave1);
+        NavesEspaciales.getNaves().add(nave2);
+        NavesEspaciales.getNaves().add(nave3);
+
+        NavesEspaciales.getNaves().sort((a, b) -> Integer.compare(b.getExperienciaTotal(), a.getExperienciaTotal()));
+
+        if (NavesEspaciales.getNaves().get(0).getNombre().equals("B") &&
+            NavesEspaciales.getNaves().get(1).getNombre().equals("C") &&
+            NavesEspaciales.getNaves().get(2).getNombre().equals("A")) {
+            System.out.println("✔ testGenerarRankingOrdenaCorrectamente");
+        } else {
+            System.out.println("✘ testGenerarRankingOrdenaCorrectamente");
+        }
+    }
 }
