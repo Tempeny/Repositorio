@@ -1,248 +1,81 @@
-import java.util.*;
+import java.util.List;
 
-public class NavesEspaciales {
+import enums.MissionStatus;
+import enums.MissionType;
 
-    private static final List<NavesEspaciales> naves = new ArrayList<>();
+public class Simulacion {
 
-    private final String nombre;
-    private final int autonomiaMaxima;
-    private final int autonomiaActual;
-    private final int capacidadCarga;
-    private final boolean sensoresCientificos;
-    private final int experienciaTotal;
-    private final int experienciaTecnica;
-    private final int experienciaCientifica;
-    private final int experienciaEstrategica;
+    static Mision misiones = new Mision() {
+        
+    };
+    static NavesEspaciales naves = new NavesEspaciales(null, 0, 0, 0, false, 0, 0, 0);
+    
+    static List<Mision> misionesPendientes;
+    static List<NavesEspaciales> navesAptas;
 
-    // Constructor
-    public NavesEspaciales(String nombre, int autonomiaMaxima, int autonomiaActual, int capacidadCarga,
-                           boolean sensoresCientificos, int experienciaTecnica, int experienciaCientifica, int experienciaEstrategica) {
-        this.nombre = nombre;
-        this.autonomiaMaxima = autonomiaMaxima;
-        this.autonomiaActual = autonomiaActual;
-        this.capacidadCarga = capacidadCarga;
-        this.sensoresCientificos = sensoresCientificos;
-        this.experienciaTecnica = experienciaTecnica;
-        this.experienciaCientifica = experienciaCientifica;
-        this.experienciaEstrategica = experienciaEstrategica;
-        this.experienciaTotal = experienciaTecnica + experienciaCientifica + experienciaEstrategica;
-    }
+    public static void simularCiclo() {
 
-    // Registro de nave con validaciones
-    public static NavesEspaciales registrarNave(Scanner scanner) {
-        System.out.print("Nombre de la nave: ");
-        String nombre = scanner.nextLine().trim();
-
-        if (naveExiste(nombre)) {
-            System.out.println("❌ Error: Ya existe una nave con ese nombre. Registro cancelado.");
-            return null;
+        //Listar Misiones y naves
+        int contador=0;      
+        int contador2=0;
+        for(Mision mision: misiones){
+            if(mision.getStatus()==MissionStatus.PENDIENTE){
+                misionesPendientes.add(mision);
+                contador++;
+            }
         }
+        System.out.println("Misiones pendientes: "+ contador);
 
-        int autonomiaMaxima = leerEntero(scanner, "Autonomía máxima: ", 1);
-        int autonomiaActual = leerEntero(scanner, "Autonomía actual: ", 1);
-
-        if (autonomiaActual > autonomiaMaxima) {
-            System.out.println("❌ Error: La autonomía actual no puede superar a la máxima.");
-            return null;
+        for(NavesEspaciales nave : naves){
+            contador2++;
         }
+        System.out.println("Naves disponibles: "+ contador2);
 
-        int capacidadCarga = leerEntero(scanner, "Capacidad de carga: ", 1);
+        //Ordenar las misiones en el array
+        misionesPendientes.sort(mision.getPrioridad);
 
-        System.out.print("¿Sensores científicos? (true/false): ");
-        boolean sensoresCientificos = scanner.nextBoolean();
+        //Mostrar las misiones ya ordenadas, depende del tipo de misión mostrará diferente información
+        for(Mision mision : misionesPendientes){
+            System.out.println("Evaluando misión: "+mision.getNombre()+" [prioridad: "+mision.getPrioridad()+"]\nRequiere: ");
+            if(mision.MissionType==MissionType.COLONIZACION){
+                System.out.println("carga>="+MisionColonizacion.getCarga()+", experiencia estratégica>= "+MisionColonizacion.getXP());
+            }
+            else if(mision.MissionType==MissionType.EXPLORACION){
+                System.out.println("autonomía>="+MisionExploracion.getAutonomia()+", experiencia científica>= "+MisionExploracion.getXP());
+            }
+            else{
+                System.out.println("sensores científicos = true, experiencia técnica >="+MisionRecoleccion.getXP());
+            }
 
-        int experienciaTecnica = leerEntero(scanner, "Experiencia técnica: ", 0);
-        int experienciaCientifica = leerEntero(scanner, "Experiencia científica: ", 0);
-        int experienciaEstrategica = leerEntero(scanner, "Experiencia estratégica: ", 0);
-        scanner.nextLine(); // Limpia el buffer
-
-        NavesEspaciales nuevaNave = new NavesEspaciales(
-                nombre, autonomiaMaxima, autonomiaActual, capacidadCarga,
-                sensoresCientificos, experienciaTecnica, experienciaCientifica, experienciaEstrategica
-        );
-
-        naves.add(nuevaNave);
-        System.out.println("✅ Nave registrada exitosamente.");
-        return nuevaNave;
-    }
-
-    // Mostrar resumen de estado de todas las naves
-    public static void mostrarEstado() {
-        System.out.println("== Estadísticas de Naves ==");
-        for (NavesEspaciales nave : naves) {
-            System.out.printf("- %s | Total: %d | Técnica: %d | Científica: %d | Estratégica: %d%n",
-                    nave.nombre, nave.experienciaTotal, nave.experienciaTecnica, nave.experienciaCientifica, nave.experienciaEstrategica);
-        }
-    }
-
-    // Mostrar ranking por experiencia total
-    public static void generarRanking() {
-        System.out.println("== Ranking de Naves ==");
-        naves.stream()
-             .sorted(Comparator.comparingInt(NavesEspaciales::getExperienciaTotal).reversed())
-             .forEach(nave -> System.out.printf("- %s | Experiencia total: %d%n", nave.nombre, nave.experienciaTotal));
-    }
-
-    // Mostrar detalles de todas las naves
-    public static void logNaves() {
-        System.out.println("\n***** LISTADO COMPLETO DE NAVES *****");
-        for (NavesEspaciales nave : naves) {
-            nave.logNave();
-        }
-    }
-
-    public void logNave() {
-        System.out.printf("""
-                
-                Nombre: %s
-                Autonomía máxima: %d
-                Autonomía actual: %d
-                Capacidad de carga: %d
-                Sensores científicos: %s
-                Experiencia total: %d
-                Técnica: %d
-                Científica: %d
-                Estratégica: %d
-                """, nombre, autonomiaMaxima, autonomiaActual, capacidadCarga,
-                sensoresCientificos ? "Sí" : "No", experienciaTotal,
-                experienciaTecnica, experienciaCientifica, experienciaEstrategica);
-    }
-
-    // Métodos auxiliares
-    private static boolean naveExiste(String nombre) {
-        return naves.stream().anyMatch(n -> n.nombre.equalsIgnoreCase(nombre));
-    }
-
-    private static int leerEntero(Scanner scanner, String mensaje, int minimo) {
-        int valor;
-        while (true) {
-            System.out.print(mensaje);
-            try {
-                valor = Integer.parseInt(scanner.nextLine());
-                if (valor < minimo) {
-                    System.out.println("⚠️ Valor inválido. Debe ser mayor o igual a " + minimo + ".");
-                } else {
-                    return valor;
+            //Bucle para mirar las naves y mirar si la nave puede hacer la misión
+            for(NavesEspaciales nave : naves){
+                if(mision.MissionType==MissionType.COLONIZACION){
+                    nave.getCapacidadCarga()>=MisionColonizacion.getCarga() && nave.getExperienciaEstrategica()>= MisionColonizacion.getXP();
+                    navesAptas.add(nave);
+                    naves.remove(nave);
+                    misionesPendientes.remove(mision);
+                    System.out.println("Nave seleccionada: "+nave.getNombre()+"\nEjecutando misión...\nExperiencia ganada +1 Estratégica\nEvento aleatorio: "+eventoAleatorio()+"\nAutonomía restante: "+(nave.getAutonomiaMaxima()-5));
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("⚠️ Entrada inválida. Debes ingresar un número entero.");
+                else if(mision.MissionType==MissionType.EXPLORACION){
+                    nave.getAutonomiaActual()>=MisionExploracion.getAutonomia() && nave.getExperienciaCientifica()>= MisionExploracion.getXP();
+                    navesAptas.add(nave);
+                    naves.remove(nave);
+                    misionesPendientes.remove(mision);
+                    System.out.println("Nave seleccionada: "+nave.getNombre()+"\nEjecutando misión...\nExperiencia ganada +1 Científica\nEvento aleatorio: "+eventoAleatorio()+"\nAutonomía restante: "+(nave.getAutonomiaMaxima()-5));
+                }
+                else if(mision.MissionType==MissionType.RECOLECCION_DATOS){
+                    nave.tieneSensoresCientificos()==true && nave.getExperienciaTecnica()>= MisionRecoleccion.getXP();
+                    navesAptas.add(nave);
+                    naves.remove(nave);
+                    misionesPendientes.remove(mision);
+                }
+                else{
+                        System.out.println("No hay naves aptas para esta misión");
+                    }
+                nave.getAutonomiaActual() = nave.getautonomiaMaxima();
+                }
+                System.out.println("Autonomía restaurada en todas las naves");
+                return;
             }
         }
     }
-
-    public static void generarNavesEjemplo() {
-        naves.add(new NavesEspaciales("Omega", 1500, 1500, 700, true, 2, 1, 2));
-        naves.add(new NavesEspaciales("Alpha", 900, 900, 600, true, 2, 5, 3));
-        naves.add(new NavesEspaciales("Beta", 1200, 1200, 400, true, 10, 0, 2));
-    }
-
-    // Getters
-    public String getNombre() { return nombre; }
-    public int getAutonomiaMaxima() { return autonomiaMaxima; }
-    public int getAutonomiaActual() { return autonomiaActual; }
-    public int getCapacidadCarga() { return capacidadCarga; }
-    public boolean tieneSensoresCientificos() { return sensoresCientificos; }
-    public int getExperienciaTotal() { return experienciaTotal; }
-    public int getExperienciaTecnica() { return experienciaTecnica; }
-    public int getExperienciaCientifica() { return experienciaCientifica; }
-    public int getExperienciaEstrategica() { return experienciaEstrategica; }
-
-    public static List<NavesEspaciales> getNaves() {
-        return Collections.unmodifiableList(naves);
-    }
-}
-
-
-
-
-public class NavesEspacialesTestManual {
-
-    public static void main(String[] args) {
-        testRegistroNaveExitosa();
-        testExperienciaTotalCalculadaCorrectamente();
-        testAutonomiaActualMayorQueMaxima();
-        testNaveDuplicada();
-        testGenerarRankingOrdenaCorrectamente();
-    }
-
-    public static void testRegistroNaveExitosa() {
-        NavesEspaciales.getNaves().clear();
-
-        NavesEspaciales nave = new NavesEspaciales("Explorer", 1000, 800, 500, true, 3, 2, 1);
-        NavesEspaciales.getNaves().add(nave);
-
-        if (NavesEspaciales.getNaves().size() == 1 &&
-                NavesEspaciales.getNaves().get(0).getNombre().equals("Explorer")) {
-            System.out.println("✔ testRegistroNaveExitosa");
-        } else {
-            System.out.println("✘ testRegistroNaveExitosa");
-        }
-    }
-
-    public static void testExperienciaTotalCalculadaCorrectamente() {
-        NavesEspaciales nave = new NavesEspaciales("Nova", 1200, 900, 400, false, 4, 3, 2);
-        if (nave.getExperienciaTotal() == 9) {
-            System.out.println("✔ testExperienciaTotalCalculadaCorrectamente");
-        } else {
-            System.out.println("✘ testExperienciaTotalCalculadaCorrectamente");
-        }
-    }
-
-    public static void testAutonomiaActualMayorQueMaxima() {
-        boolean paso = false;
-        try {
-            new NavesEspaciales("Delta", 1000, 1200, 500, false, 1, 1, 1);
-        } catch (IllegalArgumentException e) {
-            paso = true;
-        }
-
-        if (paso) {
-            System.out.println("✔ testAutonomiaActualMayorQueMaxima");
-        } else {
-            System.out.println("✘ testAutonomiaActualMayorQueMaxima");
-        }
-    }
-
-    public static void testNaveDuplicada() {
-        NavesEspaciales.getNaves().clear();
-        NavesEspaciales nave1 = new NavesEspaciales("Orion", 1000, 800, 500, true, 1, 1, 1);
-        NavesEspaciales nave2 = new NavesEspaciales("Orion", 900, 700, 300, true, 1, 1, 1);
-
-        NavesEspaciales.getNaves().add(nave1);
-        boolean duplicada = false;
-        for (NavesEspaciales n : NavesEspaciales.getNaves()) {
-            if (n.getNombre().equalsIgnoreCase(nave2.getNombre())) {
-                duplicada = true;
-                break;
-            }
-        }
-
-        if (duplicada) {
-            System.out.println("✔ testNaveDuplicada");
-        } else {
-            System.out.println("✘ testNaveDuplicada");
-        }
-    }
-
-    public static void testGenerarRankingOrdenaCorrectamente() {
-        NavesEspaciales.getNaves().clear();
-
-        NavesEspaciales nave1 = new NavesEspaciales("A", 1000, 1000, 500, true, 1, 1, 1); // total: 3
-        NavesEspaciales nave2 = new NavesEspaciales("B", 1000, 1000, 500, true, 3, 3, 3); // total: 9
-        NavesEspaciales nave3 = new NavesEspaciales("C", 1000, 1000, 500, true, 2, 2, 2); // total: 6
-
-        NavesEspaciales.getNaves().add(nave1);
-        NavesEspaciales.getNaves().add(nave2);
-        NavesEspaciales.getNaves().add(nave3);
-
-        NavesEspaciales.getNaves().sort((a, b) -> Integer.compare(b.getExperienciaTotal(), a.getExperienciaTotal()));
-
-        if (NavesEspaciales.getNaves().get(0).getNombre().equals("B") &&
-            NavesEspaciales.getNaves().get(1).getNombre().equals("C") &&
-            NavesEspaciales.getNaves().get(2).getNombre().equals("A")) {
-            System.out.println("✔ testGenerarRankingOrdenaCorrectamente");
-        } else {
-            System.out.println("✘ testGenerarRankingOrdenaCorrectamente");
-        }
-    }
-}
