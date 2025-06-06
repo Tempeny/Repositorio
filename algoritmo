@@ -1,18 +1,236 @@
-public static void borrarNave(Scanner scanner) {
-    System.out.println("Ingrese el nombre de la nave que desea eliminar:");
-    String nombreAEliminar = scanner.nextLine();
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Scanner;
 
-    boolean naveEncontrada = false;
-    for (int i = 0; i < naves.size(); i++) {
-        if (naves.get(i).getNombre().equalsIgnoreCase(nombreAEliminar)) {
-            naves.remove(i);
-            System.out.println("Nave '" + nombreAEliminar + "' eliminada exitosamente.");
-            naveEncontrada = true;
-            break;
+public class NavesEspaciales {
+    
+    private static List<NavesEspaciales> naves = new ArrayList<>();
+
+    private final String nombre;
+    private final int autonomiaMaxima;
+    private  int autonomiaActual;
+    private final int capacidadCarga;
+    private final boolean sensoresCientificos;
+    private  int experienciaTecnica;
+    private  int experienciaCientifica;
+    private  int experienciaEstrategica;
+    private  int experienciaTotal;
+
+    public NavesEspaciales(String nombre, int autonomiaMaxima, int autonomiaActual, int capacidadCarga, boolean sensoresCientificos,  int experienciaTecnica, int experienciaCientifica, int experienciaEstrategica) {
+        this.nombre = nombre;
+        this.autonomiaMaxima = autonomiaMaxima;
+        this.autonomiaActual = autonomiaActual;
+        this.capacidadCarga = capacidadCarga;
+        this.sensoresCientificos = sensoresCientificos;
+        this.experienciaTecnica = experienciaTecnica;
+        this.experienciaCientifica = experienciaCientifica;
+        this.experienciaEstrategica = experienciaEstrategica;
+        this.experienciaTotal = experienciaTecnica + experienciaCientifica + experienciaEstrategica;
+
+    }
+
+    public static NavesEspaciales registrarNave(Scanner scanner){
+
+        scanner.nextLine();
+        System.out.println("Nombre de la nave: ");
+        String nombre = scanner.nextLine();
+
+        boolean nombreNaveExiste = false;
+        for (NavesEspaciales nave: naves ){
+            if (nave.getNombre().equalsIgnoreCase(nombre)){
+                nombreNaveExiste = true;
+                break;
+            }
+        }
+        if (nombreNaveExiste) {
+            System.out.println("Error: Ya existe una nave con ese nombre. Registro de nave cancelado.");
+            return null;
+        }
+
+        int autonomiaMaxima = leerEntero(scanner, "Autonomía máxima: ", 1);
+        int autonomiaActual = leerEntero(scanner, "Autonomía actual: ", 0);
+
+        if (autonomiaActual > autonomiaMaxima){
+            System.out.println("Error: La autonomía actual no puede ser superior a la máxima. Registro cancelado.");
+            return null;
+        }
+
+        int capacidadCarga = leerEntero(scanner, "Capacidad de carga: ", 1);
+
+        System.out.println("¿Sensores cientificos? (true/false) ");
+        boolean sensoresCientificos = scanner.nextBoolean();
+
+        int experienciaTecnica = leerEntero(scanner, "Experiencia técnica: ", 0);
+        int experienciaCientifica = leerEntero(scanner, "Experiencia científica: ", 0);
+        int experienciaEstrategica = leerEntero(scanner, "Experiencia estratégica: ", 0);
+        scanner.nextLine();
+        
+        NavesEspaciales nave = new NavesEspaciales(nombre, autonomiaMaxima, autonomiaActual,
+        capacidadCarga, sensoresCientificos, experienciaTecnica,
+        experienciaCientifica, experienciaEstrategica);
+
+        naves.add(nave);
+        System.out.println("Nave registrada exitosamente.");
+
+        return nave;
+    }
+
+    //Método extra borrarNave()
+
+    public static void borrarNave(Scanner scanner){
+        scanner.nextLine();
+        System.out.println("Ingrese el nombre de la nave que quieres eliminar");
+        String NombreEliminar = scanner.nextLine();
+
+        boolean naveEncontrada = false;
+        for (int i = 0;i > naves.size();i++){
+            if (naves.get(i).getNombre().equalsIgnoreCase(NombreEliminar)){
+                naves.remove(i);
+                System.out.println("Nave '"+ NombreEliminar + "' eliminada exitosamente");
+                naveEncontrada = true;
+                break;    
+            }
+        }
+    
+    if (!naveEncontrada){
+        System.out.println("No se encontró ninguna nave con el nombre '"+ NombreEliminar + "'." );
         }
     }
 
-    if (!naveEncontrada) {
-        System.out.println("No se encontró ninguna nave con el nombre '" + nombreAEliminar + "'.");
+    public static void mostrarEstado(){
+        System.out.println("== Estadísticas de naves ==");
+        for(NavesEspaciales nave : naves){
+
+            System.out.printf("- %s: Total: %d | Científica: %d | Técnica: %d | \n",
+                    nave.getNombre(), nave.getExperienciaTotal(), nave.getExperienciaCientifica(),nave.getExperienciaTecnica());
+            System.out.printf("Estratégica: %d\n", nave.getExperienciaEstrategica());
+        }
+
+
+    }
+    public static void generarRanking(){
+        System.out.println("== Ranking ==");
+        naves.sort(Comparator.comparingInt(NavesEspaciales::getExperienciaTotal).reversed());
+        for(NavesEspaciales nave : naves){
+            System.out.println("- Nombre: " + nave.getNombre());
+        }
+
+
+    }
+    public String getNombre() {
+        return nombre;
+    }
+
+    public int getAutonomiaMaxima() {
+        return autonomiaMaxima;
+    }
+
+    public int getAutonomiaActual() {
+        return autonomiaActual;
+    }
+
+    public int getCapacidadCarga() {
+        return capacidadCarga;
+    }
+
+    public boolean tieneSensoresCientificos() {
+        return sensoresCientificos;
+    }
+
+    public int getExperienciaTotal() {
+        return experienciaTotal;
+    }
+
+    public int getExperienciaTecnica() {
+        return experienciaTecnica;
+    }
+
+    public int getExperienciaCientifica() {
+        return experienciaCientifica;
+    }
+
+    public int getExperienciaEstrategica() {
+        return experienciaEstrategica;
+    }
+
+    public void setAutonomiaActual(int autonomiaActual) {
+        this.autonomiaActual = autonomiaActual;
+    }
+    public void setExperienciaEstrategica(int experienciaEstrategica) {
+        this.experienciaEstrategica = experienciaEstrategica;
+    }
+
+    public void setExperienciaCientifica(int experienciaCientifica) {
+        this.experienciaCientifica = experienciaCientifica;
+    }
+
+    public void setExperienciaTecnica(int experienciaTecnica) {
+        this.experienciaTecnica = experienciaTecnica;
+    }
+
+
+    public static void logNaves(){
+        System.out.println("******NAVES*****");
+        for (NavesEspaciales naves : naves){
+            naves.logNave();
+        }
+    }
+    public void logNave() {
+        System.out.printf("""
+                
+                Nombre: %s
+                Autonomía máxima: %d
+                Autonomía actual: %d
+                Capacidad de carga: %d
+                Sensores científicos: %s
+                Experiencia total: %d
+                Técnica: %d
+                Científica: %d
+                Estratégica: %d
+                """, nombre, autonomiaMaxima, autonomiaActual, capacidadCarga,
+                sensoresCientificos ? "Sí" : "No", experienciaTotal,
+                experienciaTecnica, experienciaCientifica, experienciaEstrategica);
+    }
+    
+    private static int leerEntero(Scanner scanner, String mensaje, int minimo){
+        int valor;
+        while (true) {
+            System.out.println(mensaje);
+            try{
+                valor = Integer.parseInt(scanner.nextLine());
+                if (valor < minimo) {
+                    System.out.println("Valor inválido, debe ser mayor o igual a "+ minimo + ".");
+                } else{
+                    return valor;
+                }
+            } catch (NumberFormatException e){
+                System.out.println("Entrada inválida: Debes ingresar un número entero: ");
+            }
+        }
+    }
+
+    public static List<NavesEspaciales> getNaves() {
+        return naves;
+    }
+    public static void generarNaves() {
+    naves.add(new NavesEspaciales("Omega", 1500, 1500, 700, true, 2, 1, 2));
+    naves.add(new NavesEspaciales("Alpha", 900, 900, 600, true, 2, 5, 3));
+    naves.add(new NavesEspaciales("Beta", 1200, 1200, 400, true, 10, 0, 2));
+}
+    
+    @Override
+    public String toString() {
+        return "NavesEspaciales{" +
+                "nombre='" + nombre + '\'' +
+                ", autonomiaMaxima=" + autonomiaMaxima +
+                ", autonomiaActual=" + autonomiaActual +
+                ", capacidadCarga=" + capacidadCarga +
+                ", sensoresCientificos=" + sensoresCientificos +
+                ", experienciaTotal=" + experienciaTotal +
+                ", experienciaTecnica=" + experienciaTecnica +
+                ", experienciaCientifica=" + experienciaCientifica +
+                ", experienciaEstrategica=" + experienciaEstrategica +
+                '}';
     }
 }
