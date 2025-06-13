@@ -1,191 +1,64 @@
-package com.example.proyecto;
+import java.util.Random;
 
-import java.util.List;
-import java.util.Scanner;
-import java.io.File;
-import java.io.IOException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+public static Mision misionRandom() {
+    Random random = new Random();
 
-public class App {
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        int opcion = 0;
-        do {
-            System.out.println("\n*****Bienvenido al simulador espacial*****\n\n" +
-                    "¿Qué deseas hacer?\n\n" +
-                    "1) Registrar Misión\n" +
-                    "2) Borrar misión\n" +
-                    "3) Registrar Nave\n" +
-                    "4) Borrar Nave\n" +
-                    "5) Simular un ciclo\n" +
-                    "6) Mostrar estado general\n" +
-                    "7) Buscar Misión\n" +
-                    "8) Ranking de naves\n" +
-                    "9) Generar Naves y misiones\n" +
-                    "10) Listar Naves y misiones\n" +
-                    "11) Tests\n" +
-                    "12) Guardar datos\n" +
-                    "13) Cargar datos\n" +
-                    "14) Salir\n");
+    String[] nombres = {"Andrómeda", "Titan", "Helios", "Fobos", "Atlas"};
+    int[] duraciones = {5, 10, 15, 20, 25};
+    int[] autonomiasOCargas = {100, 200, 300, 400, 500}; // Autonomía o carga según el tipo de misión
+    ExperienciaTipo[] tiposXP = {ExperienciaTipo.CIENTIFICA, ExperienciaTipo.ESTRATEGICA, ExperienciaTipo.TECNICA};
 
-            opcion = scanner.nextInt();
+    int indexNombre = random.nextInt(nombres.length);
+    int indexDuracion = random.nextInt(duraciones.length);
+    int indexAutonomiaCarga = random.nextInt(autonomiasOCargas.length);
+    int prioridad = random.nextInt(100) + 1; // Prioridad aleatoria entre 1 y 100
+    int tipoMision = random.nextInt(3); // 0: Exploración, 1: Colonización, 2: Recolección
+    ExperienciaTipo tipoXP = tiposXP[random.nextInt(tiposXP.length)];
+    int cantidadXP = random.nextInt(5) + 1;
 
-            switch (opcion) {
-                case 1:
-                    Mision.registrarMision(scanner);
-                    break;
-                case 2:
-                    Mision.borrarMision(scanner);
-                    break;
-                case 3:
-                    NavesEspaciales.registrarNave(scanner);
-                    break;
-                case 4:
-                    NavesEspaciales.borrarNave(scanner);
-                    break;
-                case 5:
-                    Simulacion.simularCiclo();
-                    break;
-                case 6:
-                    NavesEspaciales.mostrarEstado();
-                    Mision.misionesPendientes();
-                    Mision.misionesCompletadas();
-                    break;
-                case 7:
-                    Mision.buscarMisiones(scanner);
-                    break;
-                case 8:
-                    NavesEspaciales.generarRanking();
-                    break;
-                case 9:
-                    Mision.generarMisiones();
-                    NavesEspaciales.generarNaves();
-                    System.out.println("\nNaves y Misiones generadas correctamente\n");
-                    break;
-                case 10:
-                    Mision.logMisiones();
-                    NavesEspaciales.logNaves();
-                    break;
-                case 11:
-                    testRegistroNaveExitosa();
-                    expTotalCorrecta();
-                    testNaveDuplicada();
-                    rankingOrdenaCorrectamente();
-                    break;
-                case 12:
-                    guardarDatos();
-                    break;
-                case 13:
-                    cargarDatos();
-                    break;
-                case 14:
-                    System.out.println("Adiós!");
-                    break;
-                default:
-                    System.out.println("Opción no válida.");
-            }
-        } while (opcion != 14);
-        scanner.close();
+    Mision nuevaMision;
+
+    switch (tipoMision) {
+        case 0:
+            nuevaMision = new MisionExploracion(
+                nombres[indexNombre], 
+                prioridad,
+                duraciones[indexDuracion],
+                MissionType.EXPLORACION,
+                tipoXP,
+                cantidadXP,
+                autonomiasOCargas[indexAutonomiaCarga]
+            );
+            break;
+        case 1:
+            nuevaMision = new MisionColonizacion(
+                nombres[indexNombre],
+                prioridad,
+                duraciones[indexDuracion],
+                MissionType.COLONIZACION,
+                tipoXP,
+                cantidadXP,
+                autonomiasOCargas[indexAutonomiaCarga]
+            );
+            break;
+        case 2:
+            boolean sensoresActivos = random.nextBoolean();
+            nuevaMision = new MisionRecoleccion(
+                nombres[indexNombre],
+                prioridad,
+                duraciones[indexDuracion],
+                MissionType.RECOLECCION_DATOS,
+                tipoXP,
+                cantidadXP,
+                sensoresActivos
+            );
+            break;
+        default:
+            return null; // Esto no debería ocurrir
     }
 
-    public static void testRegistroNaveExitosa() {
-        NavesEspaciales.getNaves().clear();
-        NavesEspaciales nave = new NavesEspaciales("Fragata Plasma", 1000, 800, 500, true, 3, 2, 1);
-        NavesEspaciales.getNaves().add(nave);
-
-        if (NavesEspaciales.getNaves().size() == 1 &&
-                NavesEspaciales.getNaves().get(0).getNombre().equals("Fragata Plasma")) {
-            System.out.println("Nave de prueba registrada con éxito");
-        } else {
-            System.out.println("Error: Nave no registrada correctamente");
-        }
-    }
-
-    public static void expTotalCorrecta() {
-        NavesEspaciales nave = new NavesEspaciales("Bellatrix", 1200, 900, 400, false, 4, 3, 2);
-        if (nave.getExperienciaTotal() == 9) {
-            System.out.println("Experiencia total calculada correctamente.");
-        } else {
-            System.out.println("Error: Experiencia total calculada incorrectamente");
-        }
-    }
-
-    public static void testNaveDuplicada() {
-        NavesEspaciales.getNaves().clear();
-        NavesEspaciales nave1 = new NavesEspaciales("Orion", 1000, 800, 500, true, 1, 1, 1);
-        NavesEspaciales nave2 = new NavesEspaciales("Orion", 900, 700, 300, true, 1, 1, 1);
-
-        NavesEspaciales.getNaves().add(nave1);
-        boolean duplicada = false;
-        for (NavesEspaciales n : NavesEspaciales.getNaves()) {
-            if (n.getNombre().equalsIgnoreCase(nave2.getNombre())) {
-                duplicada = true;
-                break;
-            }
-        }
-
-        if (duplicada) {
-            System.out.println("Test de los duplicados pasado con éxito");
-        } else {
-            System.out.println("Error: Test duplicados fallido");
-        }
-    }
-
-    public static void rankingOrdenaCorrectamente() {
-        NavesEspaciales.getNaves().clear();
-
-        NavesEspaciales nave1 = new NavesEspaciales("A", 500, 500, 500, true, 1, 1, 1);
-        NavesEspaciales nave2 = new NavesEspaciales("B", 500, 500, 500, true, 3, 3, 3);
-        NavesEspaciales nave3 = new NavesEspaciales("C", 500, 500, 500, false, 2, 2, 2);
-
-        NavesEspaciales.getNaves().add(nave1);
-        NavesEspaciales.getNaves().add(nave2);
-        NavesEspaciales.getNaves().add(nave3);
-
-        NavesEspaciales.getNaves().sort((a, b) -> Integer.compare(b.getExperienciaTotal(), a.getExperienciaTotal()));
-        if (NavesEspaciales.getNaves().get(0).getNombre().equals("B") &&
-                NavesEspaciales.getNaves().get(1).getNombre().equals("C") &&
-                NavesEspaciales.getNaves().get(2).getNombre().equals("A")) {
-            System.out.println("Test ranking pasado correctamente");
-        } else {
-            System.out.println("Error: Tests Ranking fallidos");
-        }
-    }
-
-    private static void guardarDatos() {
-        List<NavesEspaciales> naves = NavesEspaciales.getNaves();
-        List<Mision> misiones = Mision.getMisiones();
-
-        DatosSimulador datos = new DatosSimulador(naves, misiones);
-        ObjectMapper mapper = new ObjectMapper();
-
-        try {
-            File jsonFile = new File("Simulador.json");
-            mapper.writeValue(jsonFile, datos);
-            System.out.println("Naves y misiones guardadas correctamente en Simulador.json");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void cargarDatos() {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            File jsonFile = new File("Simulador.json");
-            if (jsonFile.exists()) {
-                DatosSimulador datos = mapper.readValue(jsonFile, DatosSimulador.class);
-                NavesEspaciales.getNaves().clear();
-                NavesEspaciales.getNaves().addAll(datos.getNaves());
-
-                Mision.getMisiones().clear();
-                Mision.getMisiones().addAll(datos.getMisiones());
-
-                System.out.println("Naves y misiones cargadas correctamente desde Simulador.json");
-            } else {
-                System.out.println("No se encontró el archivo Simulador.json.");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    misiones.add(nuevaMision);
+    System.out.println("Misión aleatoria creada:");
+    nuevaMision.logMision();
+    return nuevaMision;
 }
